@@ -8,6 +8,9 @@
 // @run-at       document-idle
 // @grant        none
 // ==/UserScript==
+// @updateURL    https://github.com/myhomeayu/line/raw/main/line.user.js
+// @downloadURL  https://github.com/myhomeayu/line/raw/main/line.user.js
+
 
 (() => {
   'use strict';
