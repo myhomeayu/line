@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         LINE Login Auto Click
 // @namespace    user scripts
-// @version      1.0.1
-// @description  Auto-click LINE login button once on login page
+// @version      1.0.2
+// @description  Auto-click LINE login on repeat visits and keep consent auto-click behavior
 // @match        https://access.line.me/oauth2/v2.1/login*
 // @match        https://access.line.me/oauth2/v2.1/authorize/consent*
 // @run-at       document-idle
@@ -91,15 +91,19 @@
       log('skip: non-target page');
       return;
     }
-    const guardKey = mode === 'login' ? LOGIN_GUARD_KEY : CONSENT_GUARD_KEY;
-    log('start', { href: location.href, mode, guardKey });
+    const guardKey = mode === 'consent' ? CONSENT_GUARD_KEY : '';
+    const pageStartLog = mode === 'login' ? 'login page start' : 'consent page start';
+    log(pageStartLog, { href: location.href, mode, guardKey });
 
-    if (sessionStorage.getItem(guardKey)) {
-      log('skip: guard hit');
+    if (mode === 'login') {
+      log('login guard disabled for repeat visits');
+    } else if (sessionStorage.getItem(guardKey)) {
+      log('skip: consent guard hit');
       return;
     }
 
     let tries = 0;
+    let clicked = false;
     const timer = setInterval(() => {
       tries += 1;
 
@@ -118,7 +122,16 @@
         return;
       }
 
-      sessionStorage.setItem(guardKey, '1');
+      if (clicked) {
+        clearInterval(timer);
+        log('skip: already clicked in this page instance', { foundBy });
+        return;
+      }
+
+      clicked = true;
+      if (mode === 'consent') {
+        sessionStorage.setItem(guardKey, '1');
+      }
 
       try {
         el.click();
